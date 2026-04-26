@@ -25,11 +25,11 @@ TRACK_MIN_POINTS = 50
 # How close the car must return to start (m) to "close" the loop
 LOOP_CLOSE_DIST = 0.08
 
-SPEED_MIN = 135   # slowest (tight corner)
-SPEED_MAX = 200   # fastest (straight)
+SPEED_MIN = 0   # slowest (tight corner)
+SPEED_MAX = 255   # fastest (straight)
 
 # How far ahead on the spline to look for corners (0.0–1.0 of lap)
-LOOKAHEAD = 0.1
+LOOKAHEAD = 0.05
 
 # Number of slow mapping laps before switching to race mode
 MAPPING_LAPS = 3
@@ -130,7 +130,7 @@ def speed_for_position(tck, progress, curvature_map, n=500):
     max_curv = curvature_map[indices].max()
 
     # Clamp curvature to a sane range (tune if needed)
-    curv_min, curv_max = 0.0, 20.0
+    curv_min, curv_max = 0.0, 50.0
     t = np.clip((max_curv - curv_min) / (curv_max - curv_min), 0.0, 1.0)
 
     # Invert: high curvature → low speed
@@ -254,8 +254,8 @@ class TrackBuilder:
 
 def main():
     global SPEED_MAX
-    EXPOSURE = 2000.0
-    GAIN     = 20.0
+    EXPOSURE = 200.0
+    GAIN     = 0.0
 
     calib         = np.load("camera_calibration.npz")
     camera_matrix = calib["camera_matrix"]
@@ -308,6 +308,14 @@ def main():
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
         frame = cv2.rotate(frame, cv2.ROTATE_180)
         gray  = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        # gray = cv2.adaptiveThreshold(
+        #     gray, 255,
+        #     cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+        #     cv2.THRESH_BINARY,
+        #     11, 2
+        # )
+        # # gray = cv2.GaussianBlur(gray, (5,5), 0)
+        # frame = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
 
         corners, ids, _ = detector.detectMarkers(gray)
 
