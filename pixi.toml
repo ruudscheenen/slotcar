@@ -1,0 +1,18 @@
+[workspace]
+channels = ["conda-forge"]
+name = "OpenCV"
+platforms = ["win-64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+python = "==3.13.11"
+
+[pypi-dependencies]
+opencv-python = ">=4.13.0.92, <5"
+iai-gxipy = "==2.0.2407.9061"
+pyvisual = ">=0.65, <0.66"
+pillow = ">=12.1.0,<13"
+pyserial = ">=3.5,<4"
+scipy = ">=1.17.1,<2"
