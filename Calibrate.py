@@ -12,10 +12,10 @@ criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 0.001)
 
 # Prepare object points
 # The example chessboard is 9x6.
-CHESSBOARD_X = 7
-CHESSBOARD_Y = 7
+CHESSBOARD_X = 6
+CHESSBOARD_Y = 9
 # The example chessboard printed on a A4 paper will approximately be 22.5mm.
-SQUARE_SIZE_MM = 10
+SQUARE_SIZE_MM = 22.4
 
 objp = np.zeros((CHESSBOARD_X * CHESSBOARD_Y, 3), np.float32)
 objp[:, :2] = np.mgrid[0:CHESSBOARD_X, 0:CHESSBOARD_Y].T.reshape(-1, 2) * (SQUARE_SIZE_MM * 0.001)
@@ -27,7 +27,7 @@ imgpoints = []
 img_counter = 0
 
 # ===== BRIGHTNESS CONTROLS - ADJUST THESE =====
-EXPOSURE_TIME = 100000.0  # Microseconds (10ms). Increase to brighten, decrease to darken
+EXPOSURE_TIME = 10000.0  # Microseconds (10ms). Increase to brighten, decrease to darken
 GAIN = 0.0            # dB. Range typically 0-20. Higher = brighter but more noise
 # ==============================================
 

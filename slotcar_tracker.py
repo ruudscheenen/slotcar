@@ -10,9 +10,8 @@ import timeit
 import serial
 import time
 
-# ─── Config ───────────────────────────────────────────────────────────────────
 
-arduino = serial.Serial(port='COM6', baudrate=115200, timeout=.1)
+arduino = serial.Serial(port='COM9', baudrate=115200, timeout=.1)
 
 MARKER_REFERENCE = 10       # fixed reference marker on track
 MARKER_CAR       = 1        # car marker
@@ -253,7 +252,7 @@ class TrackBuilder:
 
 def main():
     EXPOSURE = 2000.0
-    GAIN     = 20.0
+    GAIN     = 15.0
 
     calib         = np.load("camera_calibration.npz")
     camera_matrix = calib["camera_matrix"]
@@ -316,7 +315,11 @@ def main():
         debug = draw_debug(track, None, frame=frame,
                            lap_count=lap_count, lap_time=last_lap_time, best_lap=best_lap_time)
         cv2.imshow("debug", debug)
-        cv2.waitKey(1)
+
+        key = cv2.waitKey(1)
+        # wait 25ms and check if 'q' is pressed to quit
+        if key & 0xFF == ord('q'):
+            exit(0)
 
         if ids is None:
             continue
@@ -400,7 +403,10 @@ def main():
                                    lap_count=lap_count, lap_time=last_lap_time, best_lap=best_lap_time)
 
         cv2.imshow("debug", debug)
-        cv2.waitKey(1)
+        key = cv2.waitKey(1)
+        # wait 25ms and check if 'q' is pressed to quit
+        if key & 0xFF == ord('q'):
+            exit(0)
 
         cycle_ms = (timeit.default_timer() - start_timer) * 1e3
         # print(f"[cycle] {cycle_ms:.1f} ms")
