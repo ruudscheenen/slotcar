@@ -10,7 +10,6 @@ import timeit
 import serial
 import time
 
-
 arduino = serial.Serial(port='COM9', baudrate=115200, timeout=.1)
 
 MARKER_REFERENCE = 10       # fixed reference marker on track
@@ -18,7 +17,7 @@ MARKER_CAR       = 1        # car marker
 MARKER_SIZE      = 0.05     # meters
 
 # Minimum distance (m) between recorded track points
-TRACK_POINT_MIN_DIST = 0.02
+TRACK_POINT_MIN_DIST = 0.05
 
 # How many points before we try fitting the spline
 TRACK_MIN_POINTS = 50
@@ -27,10 +26,10 @@ TRACK_MIN_POINTS = 50
 LOOP_CLOSE_DIST = 0.08
 
 SPEED_MIN = 135   # slowest (tight corner)
-SPEED_MAX = 225   # fastest (straight)
+SPEED_MAX = 200   # fastest (straight)
 
 # How far ahead on the spline to look for corners (0.0–1.0 of lap)
-LOOKAHEAD = 0.05
+LOOKAHEAD = 0.1
 
 # Number of slow mapping laps before switching to race mode
 MAPPING_LAPS = 3
@@ -166,7 +165,7 @@ def draw_debug(track, car_xy, frame=None, speed=None, progress=None,
 
         for i in range(len(pts) - 1):
             t = curv_norm[i]
-            color = (0, int(255 * (1 - t)), int(255 * t))
+            color = (0, int(255 * (1 - t * 5)), int(255 * t))
             p1 = to_px(*pts[i])
             p2 = to_px(*pts[i + 1])
             cv2.line(img, p1, p2, color, 2)
@@ -184,6 +183,9 @@ def draw_debug(track, car_xy, frame=None, speed=None, progress=None,
     cv2.putText(img, f"speed: {speed if speed else '--'}",    (10, 65),  cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 255, 150),   1)
     cv2.putText(img, f"time:  {f'{lap_time:.2f}s' if lap_time else '--'}", (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (200, 200, 200), 1)
     cv2.putText(img, f"best:  {f'{best_lap:.2f}s' if best_lap else '--'}", (10, 135), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 215, 255),   1)
+    cv2.putText(img, f"Max speed:  {f'{SPEED_MAX:.2f}'}", (10, 170), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 215, 255),   1)
+    cv2.putText(img, f"Change max speed: I = +10; K = -10", (10, 500), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 215, 255),   1)
+    cv2.putText(img, f"Quit application: Q", (10, 535), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 215, 255),   1)
 
     # Right panel: camera frame
     if frame is not None:
@@ -251,8 +253,9 @@ class TrackBuilder:
 # ─── Main ─────────────────────────────────────────────────────────────────────
 
 def main():
+    global SPEED_MAX
     EXPOSURE = 2000.0
-    GAIN     = 15.0
+    GAIN     = 20.0
 
     calib         = np.load("camera_calibration.npz")
     camera_matrix = calib["camera_matrix"]
@@ -319,7 +322,14 @@ def main():
         key = cv2.waitKey(1)
         # wait 25ms and check if 'q' is pressed to quit
         if key & 0xFF == ord('q'):
+            write_serial("0")
             exit(0)
+
+        if key & 0xFF == ord('i'):
+            SPEED_MAX = SPEED_MAX + 10
+
+        if key & 0xFF == ord('k'):
+            SPEED_MAX = SPEED_MAX - 10
 
         if ids is None:
             continue
@@ -411,6 +421,7 @@ def main():
         cycle_ms = (timeit.default_timer() - start_timer) * 1e3
         # print(f"[cycle] {cycle_ms:.1f} ms")
 
+    write_serial("0")
     cam.stream_off()
     cam.close_device()
     cv2.destroyAllWindows()
